@@ -27,7 +27,7 @@ p{margin:0}
 
 /* NAV */
 header{position:fixed;inset:0 0 auto 0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:rgba(21,15,46,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;height:68px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-size:1.15rem}
 .logo small{display:block;font-family:var(--body);font-size:.72rem;color:var(--gold);font-weight:600;letter-spacing:.04em;margin-top:-2px}
 .nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
@@ -36,7 +36,7 @@ header{position:fixed;inset:0 0 auto 0;z-index:50;padding-top:env(safe-area-inse
 .nav a.lnk.on{background:var(--ember);color:#fff}
 .burger{display:none;background:none;border:1px solid var(--line);border-radius:10px;width:44px;height:44px;cursor:pointer}
 .burger span{display:block;width:20px;height:2px;background:var(--txt);margin:5px auto;transition:.25s}
-@media(max-width:800px){
+@media(max-width:1100px){
   .burger{display:block}
   .nav ul{position:absolute;top:68px;left:0;right:0;flex-direction:column;background:var(--ink2);padding:12px 4%;border-bottom:1px solid var(--line);transform:translateY(-12px);opacity:0;pointer-events:none;transition:.25s}
   .nav ul.open{transform:none;opacity:1;pointer-events:auto}
@@ -254,10 +254,11 @@ header{background:#0b1424;backdrop-filter:none;-webkit-backdrop-filter:none;bord
 .logo{font-size:1.5rem;letter-spacing:-.03em}
 .logo>span{display:flex;align-items:center;gap:14px}
 .logo small{display:inline-block;margin:0;padding-left:14px;border-left:1px solid var(--line);font-size:1rem;font-weight:500;color:var(--mute);letter-spacing:0}
-.nav a.lnk{padding:11px 20px;font-weight:600;color:#c9d5e6}
+.nav a.lnk{padding:11px 14px;font-weight:600;color:#c9d5e6}
 .nav a.lnk.on{background:#fff;color:#0f1b2e}
 .nav a.lnk:hover:not(.on){background:rgba(255,255,255,.08);color:#fff}
-@media(max-width:800px){.nav ul{top:76px;background:#0b1424}.logo small{display:none}}
+@media(max-width:1100px){.nav ul{top:76px;background:#0b1424}}
+@media(max-width:1280px){.logo small{display:none}}
 .hero{min-height:min(100svh,860px);padding:150px 0 80px;background:transparent}
 #embers{display:none}
 .hero .wrap{grid-template-columns:1.05fr .95fr;gap:60px}
@@ -372,3 +373,24 @@ dialog{border-radius:4px;border-top:4px solid var(--ember)}
 .ad::before{content:"Publicidad";display:block;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);opacity:.7;margin-bottom:6px}
 .amsg{margin:0 0 14px;padding:11px 14px;border-radius:4px;font-weight:600;background:rgba(255,255,255,.06)}
 .amsg:empty{display:none}.amsg.ok{background:rgba(61,220,132,.15);color:#7dffb0}.amsg.bad{background:rgba(255,45,45,.15);color:#ff8a8a}
+
+/* idioma, imágenes en agenda y texto en novedades */
+#lang{width:auto;background:var(--ink2);border:2px solid var(--line);border-radius:2px;padding:7px 12px;color:#fff;font-family:var(--display);font-style:italic;font-weight:800;text-transform:uppercase;font-size:1.05rem;cursor:pointer}
+#lang:focus{border-color:var(--gold)}
+@media(max-width:1100px){#lang{margin-left:auto;margin-right:10px}}
+html[lang=en] .ad::before{content:"Advertising"}html[lang=pt] .ad::before{content:"Publicidade"}
+.evi{width:100%;max-height:220px;object-fit:cover;border-radius:4px;margin-bottom:10px}
+.nx{color:#d6cbf3;font-size:.95rem;line-height:1.5}
+
+/* Celulares angostos: el selector de idioma no se sale de la pantalla */
+@media(max-width:520px){.logo{font-size:1.2rem}.logo svg{width:28px;height:33px}.logo>span{gap:8px}#lang{font-size:.85rem;padding:6px 8px;margin-right:8px}.nav{gap:6px}}
+@media(max-width:400px){.logo{font-size:1rem;letter-spacing:0}.logo svg{width:22px;height:26px}.logo>span{gap:6px}#lang{font-size:.75rem;padding:5px 6px;margin-right:6px}.burger{width:40px;height:40px}.wrap{width:min(1180px,94%)}}
+@media(max-width:340px){.logo svg{display:none}}
+/* Barra superior: que quepan menú e idioma en escritorio */
+.nav a.lnk{padding:9px 16px}
+@media(max-width:1100px){.nav a.lnk{padding:14px 16px}}
+.nav a.lnk{padding:9px 13px}
+#lang{font-size:.9rem;padding:6px 8px}
+@media(max-width:1100px){.nav a.lnk{padding:14px 16px}}
+@media(max-width:520px){#lang{font-size:.85rem;padding:6px 8px}}
+@media(max-width:400px){#lang{font-size:.75rem;padding:5px 6px}}
