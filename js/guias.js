@@ -146,7 +146,8 @@ $("#maps").innerHTML=MAPS.map((m,i)=>`<details${i===0?" open":""}><summary>${m.n
     try{
       const r=await fetch(CFG.url+"/rest/v1/site_content?on_conflict=key",{method:"POST",headers:hdr({"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify(Object.keys(D).map(k=>({key:k,data:D[k]})))});
       if(!r.ok){let t="";try{t=(await r.json()).message||""}catch(e){}
-        msg(r.status===401?"Tu sesión venció. Vuelve a entrar con la contraseña y publica otra vez.":r.status===403?"Supabase no te dejó guardar (permisos). Ejecuta supabase.sql en el SQL Editor y revisa que el usuario sea soporteoficialweb@gmail.com.":r.status===404?"No existe la tabla site_content. Ejecuta supabase.sql en el SQL Editor de Supabase.":"Error "+r.status+(t?": "+t:""),0);
+        let em="";try{em=JSON.parse(atob(tok.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))).email||""}catch(x){}
+        msg(r.status===401?"Tu sesión venció. Vuelve a entrar con la contraseña y publica otra vez.":r.status===403?"Supabase no dejó guardar"+(t?" ("+t+")":"")+". Tu sesión es de «"+(em||"?")+"». Vuelve a ejecutar el supabase.sql NUEVO en el SQL Editor (es seguro repetirlo) y entra otra vez.":r.status===404?"No existe la tabla site_content. Ejecuta supabase.sql en el SQL Editor de Supabase.":"Error "+r.status+(t?": "+t:""),0);
         if(r.status===401){tok="";D=null;view()}return}
       const v=await fetch(CFG.url+"/rest/v1/site_content?select=key&_="+Date.now(),{headers:{apikey:CFG.key},cache:"no-store"});
       const n=v.ok?(await v.json()).length:0;
