@@ -1,7 +1,7 @@
 (async function(){
 const CFG={email:"soporteoficialweb@gmail.com",url:"https://sqxohgghsszbbbuwrval.supabase.co",key:"sb_publishable_4WwGqIl_j8mul07m8kN9Xw_yGgNpcLM"};
-const SD={};
-try{const r=await fetch(CFG.url+"/rest/v1/site_content?select=key,data",{headers:{apikey:CFG.key},signal:AbortSignal.timeout(5000)});if(r.ok)(await r.json()).forEach(x=>{SD[x.key]=x.data})}catch(e){}
+const SD={};let SDok=false;
+try{const r=await fetch(CFG.url+"/rest/v1/site_content?select=key,data&_="+Date.now(),{headers:{apikey:CFG.key},cache:"no-store",signal:AbortSignal.timeout(8000)});if(r.ok){(await r.json()).forEach(x=>{SD[x.key]=x.data});SDok=true}}catch(e){}
 const okimg=u=>typeof u==="string"&&u.startsWith(CFG.url+"/storage/v1/object/public/media/")?u:"";
 const safe=u=>/^https?:\/\//i.test(u||"")?u:"";
 /* ============ DATOS ============ */
@@ -45,7 +45,8 @@ const MAPS=[
 /* ============ UTILIDADES ============ */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2600)}
+function msg(t,ok){const b=$("#admBody");let m=$("#admMsg");if(!m){m=document.createElement("p");m.id="admMsg";m.setAttribute("role","status");b.parentNode.insertBefore(m,b)}m.className="amsg "+(ok===1?"ok":ok===0?"bad":"");m.textContent=t}
+function toast(m){const d=$("#adm");if(d&&d.open){msg(m,/^(Imagen|Cambios)/.test(m)?1:0);return}const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2600)}
 const todayIdx=(new Date().getDay()+6)%7;
 
 /* NAV */
@@ -65,7 +66,9 @@ renderNews();
 /* ============ COOKIES Y PUBLICIDAD ============ */
 (function(){
   let c=localStorage.getItem("ffz_ck");
-  function ads(){if(SD.adsense&&c==="1"&&!window._ad){window._ad=1;const e=document.createElement("script");e.async=true;e.crossOrigin="anonymous";e.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+encodeURIComponent(SD.adsense);document.head.appendChild(e)}}
+  function ads(){const A=SD.ads||{},cl=A.client||SD.adsense||"";if(c!=="1"||!/^ca-pub-\d{8,20}$/.test(cl))return;
+    if(!window._ad){window._ad=1;const e=document.createElement("script");e.async=true;e.crossOrigin="anonymous";e.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+encodeURIComponent(cl);document.head.appendChild(e)}
+    $$(".ad[data-pos]").forEach(box=>{const sl=A[box.dataset.pos]||"";if(!/^\d{5,20}$/.test(sl)||box.dataset.on)return;box.dataset.on=1;const i=document.createElement("ins");i.className="adsbygoogle";i.style.display="block";i.setAttribute("data-ad-client",cl);i.setAttribute("data-ad-slot",sl);i.setAttribute("data-ad-format","auto");i.setAttribute("data-full-width-responsive","true");box.appendChild(i);box.hidden=false;try{(window.adsbygoogle=window.adsbygoogle||[]).push({})}catch(_){}})}
   $("#ck").hidden=!!c;ads();
   $("#ckY").onclick=()=>{c="1";localStorage.setItem("ffz_ck","1");$("#ck").hidden=true;ads()};
   $("#ckN").onclick=()=>{c="0";localStorage.setItem("ffz_ck","0");$("#ck").hidden=true};
@@ -75,8 +78,8 @@ renderNews();
 (function(){
   const dlg=$("#adm"),body=$("#admBody"),tabs=$("#admTabs");let D=null,tab="b",tok="",pend="",fails=0,lock=0;
   const hdr=x=>Object.assign({apikey:CFG.key,Authorization:"Bearer "+tok},x);
-  const base=()=>JSON.parse(JSON.stringify({banner:SD.banner||{on:false},agenda:SD.agenda||[],news:SD.news||[],games:SD.games||[],gb:SD.gb||"",hb:SD.hb||{}}));
-  const T=[["b","Banner"],["p","Portada"],["a","Agenda"],["n","Novedades"],["g","Juegos"]];
+  const base=()=>JSON.parse(JSON.stringify({banner:SD.banner||{on:false},agenda:SD.agenda||[],news:SD.news||[],games:SD.games||[],gb:SD.gb||"",hb:SD.hb||{},ads:SD.ads||{client:SD.adsense||""}}));
+  const T=[["d","Anuncios"],["b","Banner"],["p","Portada"],["a","Agenda"],["n","Novedades"],["g","Juegos"]];
   function sync(){AGENDA=D.agenda;NEWS=D.news;typeof GAMES!="undefined"&&(GAMES=D.games);typeof GB!="undefined"&&(GB=D.gb);typeof HB!="undefined"&&(HB=D.hb);
     typeof renderDays=="function"&&renderDays();typeof renderEvents=="function"&&renderEvents();typeof renderToday=="function"&&renderToday();typeof renderNews=="function"&&renderNews();typeof renderGames=="function"&&renderGames();typeof renderPromo=="function"&&renderPromo(D.banner);typeof renderPortada=="function"&&renderPortada()}
   async function up(f){
@@ -90,8 +93,18 @@ renderNews();
     if(!r.ok){if(++fails>=5){lock=Date.now()+60000;fails=0}return toast("Contraseña incorrecta")}
     tok=(await r.json()).access_token;D=base();view()}
   async function publish(){
-    const r=await fetch(CFG.url+"/rest/v1/site_content?on_conflict=key",{method:"POST",headers:hdr({"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify(Object.keys(D).map(k=>({key:k,data:D[k]})))});
-    toast(r.ok?"Cambios publicados":"No se pudo publicar ("+r.status+"). Revisa tu sesión y el archivo SQL.")}
+    if(!SDok)return msg("No pude leer el contenido actual de la web; no publico para no borrarlo. Recarga la página e inténtalo otra vez.",0);
+    const b=$("#admP");b.disabled=true;msg("Publicando…");
+    try{
+      const r=await fetch(CFG.url+"/rest/v1/site_content?on_conflict=key",{method:"POST",headers:hdr({"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify(Object.keys(D).map(k=>({key:k,data:D[k]})))});
+      if(!r.ok){let t="";try{t=(await r.json()).message||""}catch(e){}
+        msg(r.status===401?"Tu sesión venció. Vuelve a entrar con la contraseña y publica otra vez.":r.status===403?"Supabase no te dejó guardar (permisos). Ejecuta supabase.sql en el SQL Editor y revisa que el usuario sea soporteoficialweb@gmail.com.":r.status===404?"No existe la tabla site_content. Ejecuta supabase.sql en el SQL Editor de Supabase.":"Error "+r.status+(t?": "+t:""),0);
+        if(r.status===401){tok="";D=null;view()}return}
+      const v=await fetch(CFG.url+"/rest/v1/site_content?select=key&_="+Date.now(),{headers:{apikey:CFG.key},cache:"no-store"});
+      const n=v.ok?(await v.json()).length:0;
+      msg(n?"✔ Publicado. Ya lo ve todo el mundo (recarga la página para comprobarlo).":"Se envió, pero no pude comprobarlo. Recarga la página para ver si quedó.",n?1:undefined);
+    }catch(e){msg("No hay conexión con Supabase. Revisa tu internet e inténtalo de nuevo.",0)}
+    finally{b.disabled=false}}
   function view(){
     tabs.innerHTML=tok?T.map(t=>`<button class="chip" data-t="${t[0]}" aria-selected="${t[0]===tab}">${t[1]}</button>`).join("")+'<button class="chip" data-t="x">Salir</button>':"";
     $("#admP").hidden=!tok;
@@ -111,6 +124,10 @@ renderNews();
       <div class="two"><div class="field"><label>Categoría</label><input id="nG" maxlength="30"></div><div class="field"><label>Fecha o resumen corto</label><input id="nD" maxlength="80"></div></div>
       <div class="field"><label>Imagen (opcional)</label><input type="file" id="nI" accept="image/*"></div><button class="btn p" id="nAdd" type="button">Agregar novedad</button>
       <ul class="al">${D.news.map((n,i)=>`<li><span>${esc(n.h)}</span><button class="btn g" data-nd="${i}" type="button">Borrar</button></li>`).join("")||"<li>Aún no hay novedades.</li>"}</ul>`;
+    else if(tab==="d")body.innerHTML=`<p class="tip">Pega tu ID de editor de AdSense (ca-pub-…) y el ID de cada bloque de anuncios que te dé Google. Se muestran pequeños, sin ventanas emergentes, y solo a quien acepte las cookies.</p>
+      <div class="field"><label>ID de editor</label><input id="adC" placeholder="ca-pub-1234567890123456" value="${esc(D.ads.client)}"></div>
+      <div class="two"><div class="field"><label>Bloque de la portada</label><input id="adH" placeholder="1234567890" value="${esc(D.ads.home)}"></div><div class="field"><label>Bloque al final de cada página</label><input id="adE" placeholder="1234567890" value="${esc(D.ads.end)}"></div></div>
+      <p class="tip">Después pulsa «Publicar cambios».</p>`;
     else body.innerHTML=`<div class="field"><label>Imagen del banner «Más juegos»</label><input type="file" id="gbI" accept="image/*"></div><button class="btn g" id="gbD" type="button">Quitar imagen del banner</button>
       <h3 style="margin:18px 0 8px">Agregar juego</h3><div class="field"><label>Nombre</label><input id="gN" maxlength="60"></div><div class="field"><label>Descripción</label><input id="gP" maxlength="140"></div>
       <div class="two"><div class="field"><label>Enlace (https://…)</label><input id="gL"></div><div class="field"><label>Imagen</label><input type="file" id="gI" accept="image/*"></div></div><button class="btn p" id="gAdd" type="button">Agregar juego</button>
@@ -119,7 +136,7 @@ renderNews();
   body.oninput=body.onchange=e=>{const t=e.target;if(!D)return;const B=D.banner;
     if(t.type==="file"){if(e.type!=="change"||!t.files[0])return;
       return up(t.files[0]).then(u=>{if(t.id==="bI")B.img=u;else if(t.id==="gbI")D.gb=u;else if(t.dataset.h)D.hb[t.dataset.h]=u;else{pend=u;toast("Imagen lista");return}sync();toast("Imagen subida. Pulsa Publicar cambios.")}).catch(()=>toast("No se pudo subir la imagen"))}
-    if(t.id==="bOn")B.on=t.checked;else if(t.id==="bT")B.title=t.value;else if(t.id==="bX")B.text=t.value;else if(t.id==="bB")B.btn=t.value;else if(t.id==="bL")B.link=safe(t.value);else return;sync()};
+    if(t.id==="adC")return void(D.ads.client=t.value.trim());if(t.id==="adH")return void(D.ads.home=t.value.trim());if(t.id==="adE")return void(D.ads.end=t.value.trim());if(t.id==="bOn")B.on=t.checked;else if(t.id==="bT")B.title=t.value;else if(t.id==="bX")B.text=t.value;else if(t.id==="bB")B.btn=t.value;else if(t.id==="bL")B.link=safe(t.value);else return;sync()};
   body.onclick=e=>{const b=e.target.closest("button");if(!b)return;
     if(b.id==="li")login(CFG.email,$("#lP").value);
     else if(!D)return;

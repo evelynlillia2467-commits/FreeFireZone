@@ -365,3 +365,10 @@ header{background:#08080a;border-bottom:3px solid var(--ember)}
 footer{background:#08080a;border-top:3px solid var(--ember)}
 .toast{background:var(--gold);color:#1a0f00;border-radius:2px}
 dialog{border-radius:4px;border-top:4px solid var(--ember)}
+
+/* anuncios discretos */
+.ad{width:min(728px,92%);margin:36px auto;text-align:center;overflow:hidden}
+.ad[hidden]{display:none}
+.ad::before{content:"Publicidad";display:block;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);opacity:.7;margin-bottom:6px}
+.amsg{margin:0 0 14px;padding:11px 14px;border-radius:4px;font-weight:600;background:rgba(255,255,255,.06)}
+.amsg:empty{display:none}.amsg.ok{background:rgba(61,220,132,.15);color:#7dffb0}.amsg.bad{background:rgba(255,45,45,.15);color:#ff8a8a}
