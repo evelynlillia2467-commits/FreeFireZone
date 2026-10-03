@@ -1,7 +1,7 @@
 (async function(){
 const CFG={email:"soporteoficialweb@gmail.com",url:"https://sqxohgghsszbbbuwrval.supabase.co",key:"sb_publishable_4WwGqIl_j8mul07m8kN9Xw_yGgNpcLM"};
 const SD={};let SDok=false;
-try{const r=await fetch(CFG.url+"/rest/v1/site_content?select=key,data&_="+Date.now(),{headers:{apikey:CFG.key},cache:"no-store",signal:AbortSignal.timeout(8000)});if(r.ok){(await r.json()).forEach(x=>{SD[x.key]=x.data});SDok=true}}catch(e){}
+try{const r=await fetch(CFG.url+"/rest/v1/site_content?select=key,data&_="+Date.now(),{headers:{apikey:CFG.key},cache:"no-store",signal:AbortSignal.timeout(8000)});SDok=r.ok||r.status===404;if(r.ok)(await r.json()).forEach(x=>{SD[x.key]=x.data})}catch(e){}
 const okimg=u=>typeof u==="string"&&u.startsWith(CFG.url+"/storage/v1/object/public/media/")?u:"";
 const safe=u=>/^https?:\/\//i.test(u||"")?u:"";
 /* ============ DATOS ============ */
@@ -131,9 +131,15 @@ $("#maps").innerHTML=MAPS.map((m,i)=>`<details${i===0?" open":""}><summary>${m.n
     if(!r.ok)throw new Error("subida");return CFG.url+"/storage/v1/object/public/media/"+n}
   async function login(e,p){
     if(Date.now()<lock)return toast("Demasiados intentos. Espera un minuto.");
-    const r=await fetch(CFG.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:CFG.key,"Content-Type":"application/json"},body:JSON.stringify({email:e,password:p})});
-    if(!r.ok){if(++fails>=5){lock=Date.now()+60000;fails=0}return toast("Contraseña incorrecta")}
-    tok=(await r.json()).access_token;D=base();view()}
+    if(!p)return toast("Escribe la contraseña.");
+    msg("Entrando…");
+    let r;try{r=await fetch(CFG.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:CFG.key,"Content-Type":"application/json"},body:JSON.stringify({email:e,password:p})})}catch(x){return msg("No se pudo conectar con Supabase. Revisa tu internet o si el proyecto está pausado (supabase.com → tu proyecto → Restore project).",0)}
+    if(!r.ok){let j={};try{j=await r.json()}catch(x){}const t=(j.error_description||j.msg||j.message||"").toLowerCase();
+      if(r.status===400||r.status===422){if(++fails>=5){lock=Date.now()+60000;fails=0}}
+      return msg(t.includes("not confirmed")?"El usuario existe pero no está confirmado. En Supabase → Authentication → Users, confírmalo (o créalo con Auto Confirm User).":t.includes("invalid login")?"Contraseña incorrecta, o el usuario "+e+" no existe en Supabase (créalo en Authentication → Users → Add user).":(r.status===401||t.includes("api key"))?"La clave pública de Supabase no es válida. Revisa CFG.key en los archivos js.":"No se pudo entrar ("+r.status+"). "+(j.error_description||j.msg||j.message||""),0)}
+    tok=(await r.json()).access_token;D=base();view();
+    try{const c=await fetch(CFG.url+"/rest/v1/site_content?select=key&limit=1",{headers:hdr({})});
+      msg(c.ok?"✔ Conectado. Ya puedes editar y publicar.":c.status===404?"Entraste, pero falta crear la tabla: ejecuta supabase.sql en el SQL Editor de Supabase.":"Entraste, pero Supabase respondió "+c.status+" al leer los datos.",c.ok?1:0)}catch(x){msg("Entraste, pero no pude comprobar la conexión.",0)}}
   async function publish(){
     if(!SDok)return msg("No pude leer el contenido actual de la web; no publico para no borrarlo. Recarga la página e inténtalo otra vez.",0);
     const b=$("#admP");b.disabled=true;msg("Publicando…");
