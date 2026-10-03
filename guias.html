@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://*.adtrafficquality.google; connect-src 'self' https://sqxohgghsszbbbuwrval.supabase.co https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://*.adtrafficquality.google; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; frame-src https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://*.adtrafficquality.google; object-src 'none'; base-uri 'none'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Guías de optimización · FreeFireZone</title><meta name="description" content="Sensibilidad por celular, combos de personajes y trucos de mapas de Free Fire."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;1,700;1,800;1,900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="estilos.css"></head><body>
+<header>
+  <div class="wrap nav">
+    <a href="index.html" class="logo" aria-label="FreeFireZone, ir al inicio">
+      <svg width="34" height="40" viewBox="0 0 34 40" aria-hidden="true"><path d="M17 1c2 8 12 12 12 24a12 12 0 0 1-24 0c0-6 3-9 6-12 0 4 2 6 4 6C13 12 14 6 17 1z" fill="#ff5a1f"/><path d="M17 17c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 3-6 .5 2 1 3 2 3 0-3 0-5 1-8z" fill="#ffc83d"/></svg>
+      <span>FreeFireZone<small>AgendaBooyah</small></span>
+    </a>
+    <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul id="menu"><li><a class="lnk" href="index.html">Inicio</a></li><li><a class="lnk" href="agenda.html">Agenda semanal</a></li><li><a class="lnk on" href="guias.html">Guías</a></li><li><a class="lnk" href="juegos.html">Más juegos</a></li><li><a class="lnk" href="novedades.html">Novedades</a></li></ul>
+  </div>
+</header><main class="sub"><section id="guias">
+  <div class="wrap">
+    <h2>Guías de optimización</h2>
+    <p class="lead">Ajusta tu sensibilidad, domina los combos de personajes y llega más lejos en cada mapa.</p>
+
+    <div class="tabs" role="tablist" aria-label="Tipos de guía">
+      <button class="chip" role="tab" aria-selected="true" data-p="sens">Sensibilidad por celular</button>
+      <button class="chip" role="tab" aria-selected="false" data-p="combos">Combos de habilidades</button>
+      <button class="chip" role="tab" aria-selected="false" data-p="mapas">Trucos de mapas</button>
+    </div>
+
+    <div class="panel" id="p-sens">
+      <div class="sens">
+        <div class="card">
+          <div class="field"><label for="model">Tu celular</label><select id="model"></select></div>
+          <div class="two"><div class="field"><label for="inch">Pantalla (pulgadas)</label><input id="inch" type="number" min="4" max="14" step=".1"></div>
+          <div class="field"><label for="hz">Frecuencia (Hz)</label><select id="hz"><option>60</option><option>90</option><option>120</option><option>144</option></select></div></div>
+          <button class="btn g" id="detect" type="button" style="margin-bottom:16px">Detectar mi pantalla</button>
+          <div class="field"><label for="style">Tu estilo de juego</label><select id="style"><option value="rush">Rusher (combates cercanos)</option><option value="mix" selected>Mixto</option><option value="snipe">Francotirador (media y larga distancia)</option></select></div>
+          <div class="field"><label for="touch">Cómo juegas</label><select id="touch"><option value="2">2 dedos</option><option value="3" selected>3 dedos</option><option value="4">4 dedos (garras)</option></select></div>
+          <div class="field"><label for="pref">Prefiero: más control ↔ más velocidad</label><input id="pref" type="range" min="-3" max="3" value="0"></div>
+          <p class="tip">Son valores de partida calculados con tu pantalla, tu estilo y tus dedos. Afínalos en el campo de entrenamiento.</p>
+        </div>
+        <div class="card">
+          <h3 id="sensTitle" style="margin-bottom:6px">Tu configuración</h3>
+          <p class="tip" style="margin:0 0 18px" id="sensNote"></p>
+          <div id="bars"></div><div id="extra"></div>
+          <button class="btn g" id="copy">Copiar valores</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-combos" hidden>
+      <div class="chips" id="roleF" role="group" aria-label="Filtrar por rol"></div>
+      <div class="chars" id="chars"></div>
+      <div class="combos" id="combosBox"></div>
+      <p class="tip" style="margin-top:20px">Las habilidades se ajustan con cada actualización. Revisa las notas del parche vigente antes de elegir.</p>
+    </div>
+
+    <div class="panel" id="p-mapas" hidden>
+      <div class="maps" id="maps"></div>
+    </div>
+  </div>
+</section></main><footer><div class="wrap fgrid"><div><a href="index.html" class="logo" style="margin-bottom:10px"><span>FreeFireZone<small>AgendaBooyah</small></span></a><p style="color:var(--mute);max-width:42ch">Guías de sensibilidad, combos y trucos de Free Fire, hechas por fans.</p></div>
+<div><h3 style="margin-bottom:10px;font-size:1rem">Explora</h3><p style="line-height:2"><a href="agenda.html">Agenda semanal</a><br><a href="guias.html">Guías de optimización</a><br><a href="juegos.html">Más juegos</a><br><a href="novedades.html">Novedades</a><br><a href="terminos.html">Términos y condiciones</a><br><a href="privacidad.html">Política de privacidad</a><br><a href="contacto.html">Acerca de y contacto</a></p></div></div>
+<div class="wrap"><p class="legal">FreeFireZone / AgendaBooyah es un sitio independiente de fans, sin relación con Garena. Free Fire y sus personajes pertenecen a sus dueños. La información es orientativa y puede cambiar con las actualizaciones del juego.</p></div></footer><dialog id="adm"><div class="ah"><h3>Panel de actualización</h3><div><button id="admP" class="btn p" type="button" hidden>Publicar cambios</button> <button id="admX" class="btn g" type="button">Cerrar</button></div></div><div class="atabs" id="admTabs"></div><div id="admBody"></div></dialog><div id="ck" class="ckbar" hidden><p>Usamos almacenamiento local y, si lo aceptas, cookies de publicidad de Google. <a href="privacidad.html">Más información</a></p><button class="btn p" id="ckY" type="button">Aceptar</button><button class="btn g" id="ckN" type="button">Rechazar</button></div><div class="toast" id="toast" role="status"></div>
+<button id="top" aria-label="Volver arriba">↑</button><script src="js/guias.js"></script></body></html>

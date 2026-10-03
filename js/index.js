@@ -1,0 +1,184 @@
+(async function(){
+const CFG={email:"soporteoficialweb@gmail.com",url:"https://sqxohgghsszbbbuwrval.supabase.co",key:"sb_publishable_4WwGqIl_j8mul07m8kN9Xw_yGgNpcLM"};
+const SD={};
+try{const r=await fetch(CFG.url+"/rest/v1/site_content?select=key,data",{headers:{apikey:CFG.key},signal:AbortSignal.timeout(5000)});if(r.ok)(await r.json()).forEach(x=>{SD[x.key]=x.data})}catch(e){}
+const okimg=u=>typeof u==="string"&&u.startsWith(CFG.url+"/storage/v1/object/public/media/")?u:"";
+const safe=u=>/^https?:\/\//i.test(u||"")?u:"";
+/* ============ DATOS ============ */
+// Los datos editables (banner, agenda, novedades) viven en datos.js y se actualizan desde el Panel.
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let AGENDA=SD.agenda||[],NEWS=SD.news||[];
+const DAYS=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+const DAYS_FULL=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const CATS={diamantes:{n:"Diamantes",c:"#ffc83d"},ruleta:{n:"Eventos",c:"#ff5a1f"},pase:{n:"Pase de batalla",c:"#37e2d5"},otro:{n:"Otros",c:"#b48cff"}};
+const CHARS=[
+ {n:"Alok",r:"Soporte",c:"#ffc83d",p:"Crea un aura que cura y aumenta la velocidad de movimiento del equipo."},
+ {n:"Chrono",r:"Defensa",c:"#37e2d5",p:"Despliega un escudo que bloquea daño enemigo y permite moverse más rápido dentro."},
+ {n:"K",r:"Soporte",c:"#ff4d8d",p:"Alterna entre recuperar HP con EP o aumentar la regeneración de EP."},
+ {n:"Kelly",r:"Movilidad",c:"#ff5a1f",p:"Gana velocidad al correr: útil para rotar y tomar posiciones antes que el rival."},
+ {n:"Jota",r:"Ataque",c:"#b48cff",p:"Recupera HP al derribar enemigos con escopetas o subfusiles."},
+ {n:"Skyler",r:"Utilidad",c:"#7dd87d",p:"Libera una onda que destruye muros de gloo enemigos y repone chaleco."},
+ {n:"Hayato",r:"Ataque",c:"#ff7a45",p:"Su penetración de armadura crece a medida que baja su vida máxima."},
+ {n:"Wukong",r:"Sigilo",c:"#9be15d",p:"Se transforma en un arbusto para esconderse y reposicionarse."},
+ {n:"Moco",r:"Información",c:"#6ec6ff",p:"Marca a los enemigos que impacta para que el equipo los vea."},
+ {n:"Maxim",r:"Soporte",c:"#ffb347",p:"Come y usa botiquines más rápido que el resto."},
+ {n:"Dimitri",r:"Soporte",c:"#ff6b81",p:"Crea una zona que cura al equipo y ayuda a recuperar compañeros caídos."},
+ {n:"Laura",r:"Francotirador",c:"#c39bd3",p:"Mejora la precisión al apuntar con mira."}
+];
+const COMBOS=[
+ {a:"Jota",b:"Alok",t:"Rush con respaldo",p:"Jota se cura al derribar y Alok mantiene al equipo con vida y rápido entre peleas."},
+ {a:"Chrono",b:"K",t:"Defender zona",p:"Chrono protege el punto mientras K mantiene la energía y la salud del grupo."},
+ {a:"Kelly",b:"Skyler",t:"Rotación agresiva",p:"Kelly llega primero a la posición y Skyler rompe las defensas de gloo rivales."},
+ {a:"Dimitri",b:"Hayato",t:"Presión con curación",p:"Hayato presiona de frente mientras la zona de Dimitri lo mantiene en pie."},
+ {a:"Moco",b:"Laura",t:"Información y precisión",p:"Moco marca al rival y Laura aprovecha su precisión con mira para castigar."},
+ {a:"Wukong",b:"Moco",t:"Emboscada",p:"Wukong se esconde cerca del camino y Moco marca a los que se acercan."}
+];
+const MAPS=[
+ {n:"Trucos generales",l:["Juega con audífonos: los pasos y disparos te dicen dónde están los rivales.","Rota temprano hacia el siguiente círculo; llegar tarde te deja sin posiciones.","Usa el muro de gloo para curarte, recargar o cambiar de ángulo, no solo para cubrirte.","Avisa por el chat o la voz cuando veas enemigos: la información gana partidas.","Antes de saltar, decide con tu equipo la zona de aterrizaje y el punto de reunión.","Practica 10 minutos en el campo de entrenamiento antes de jugar clasificatoria."]},
+ {n:"Bermuda",l:["Aterriza en zonas de borde para equiparte con menos presión.","Mantén siempre una ruta hacia el siguiente círculo antes de pelear.","Usa los desniveles del terreno para cubrirte al recargar."]},
+ {n:"Purgatorio",l:["Reconoce los puntos de loot de las zonas cercanas antes de saltar.","Prioriza cubierta dura en las pelas de calle abierta.","No te quedes en el último edificio del círculo: se vuelve una trampa."]},
+ {n:"Kalahari",l:["Evita los espacios abiertos del desierto; avanza por las formaciones rocosas.","Lleva siempre un vehículo cerca para escapar de la zona.","Escucha pasos y disparos: el sonido viaja lejos."]},
+ {n:"Alpine",l:["Calcula tiempo de rotación: la nieve y las pendientes frenan.","Aprovecha los desniveles para subir con ventaja.","Cuida tu posición contra el fondo blanco, eres más visible."]},
+ {n:"Nexterra",l:["Aprende los accesos y las salidas rápidas de cada sector.","Controla la altura: quien está arriba suele ver primero.","Cambia de zona antes de que el círculo te obligue a correr."]}
+];
+
+/* ============ UTILIDADES ============ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2600)}
+const todayIdx=(new Date().getDay()+6)%7;
+
+/* NAV */
+$("#burger").onclick=()=>{const o=$("#menu").classList.toggle("open");$("#burger").setAttribute("aria-expanded",o)};
+addEventListener("scroll",()=>$("#top").classList.toggle("show",scrollY>700),{passive:true});
+$("#top").onclick=()=>scrollTo({top:0,behavior:reduce?"auto":"smooth"});
+let HB=SD.hb||{};
+function renderPortada(){$("#bgrid").innerHTML=[["agenda.html","Agenda semanal","Eventos y recompensas confirmadas de la semana","agenda","#ffc83d"],["guias.html","Guías de optimización","Sensibilidad para tu celular, combos y trucos","guias","#37e2d5"],["juegos.html","Más juegos","Descubre otros juegos para probar","juegos","#ff5a1f"],["novedades.html","Novedades y esports","Noticias confirmadas de Free Fire","novedades","#ff4d8d"]].map(b=>`<a class="bn" href="${b[0]}" style="--c:${b[4]}">${okimg(HB[b[3]])?`<div class="bi" style="background-image:url(${okimg(HB[b[3]])})"></div>`:""}<h3>${b[1]}</h3><p>${b[2]}</p></a>`).join("")}
+renderPortada();
+
+/* ============ EMBERS (hero) ============ */
+(function(){
+  if(reduce)return;
+  const c=$("#embers"),x=c.getContext("2d");let w,h,ps=[];
+  function size(){w=c.width=c.offsetWidth;h=c.height=c.offsetHeight}
+  function make(init){return{x:Math.random()*w,y:init?Math.random()*h:h+10,r:Math.random()*2.6+.6,v:Math.random()*.9+.35,s:Math.random()*Math.PI*2,hue:Math.random()<.7?"255,140,50":"255,210,80"}}
+  size();addEventListener("resize",size);
+  for(let i=0;i<70;i++)ps.push(make(true));
+  (function loop(){
+    x.clearRect(0,0,w,h);
+    ps.forEach((p,i)=>{
+      p.y-=p.v;p.s+=.02;p.x+=Math.sin(p.s)*.5;
+      const a=Math.max(0,Math.min(1,p.y/h));
+      x.beginPath();x.fillStyle=`rgba(${p.hue},${a*.85})`;x.shadowColor=`rgba(${p.hue},1)`;x.shadowBlur=10;
+      x.arc(p.x,p.y,p.r,0,7);x.fill();
+      if(p.y<-10)ps[i]=make(false);
+    });
+    requestAnimationFrame(loop);
+  })();
+})();
+
+
+/* ============ COUNTDOWN ============ */
+function nextMonday(){const n=new Date();const d=new Date(n.getFullYear(),n.getMonth(),n.getDate());d.setDate(d.getDate()+(8-(d.getDay()||7)));return d}
+function tick(){
+  let ms=nextMonday()-new Date();if(ms<0)ms=0;
+  const s=Math.floor(ms/1e3),p=n=>String(n).padStart(2,"0");
+  $("#cd-d").textContent=p(Math.floor(s/86400));$("#cd-h").textContent=p(Math.floor(s%86400/3600));
+  $("#cd-m").textContent=p(Math.floor(s%3600/60));$("#cd-s").textContent=p(s%60);
+}
+tick();setInterval(tick,1000);
+
+
+function renderToday(){if(!document.getElementById("todayTitle"))return;
+  $("#todayTitle").textContent="Hoy, "+DAYS_FULL[todayIdx];
+  const l=AGENDA.filter(e=>e.d===todayIdx).sort((a,b)=>a.t.localeCompare(b.t)).slice(0,3);
+  $("#todayList").innerHTML=l.length?l.map(e=>`<li style="--c:${CATS[e.c].c}"><b>${e.t}</b><div>${e.n}<small>${CATS[e.c].n}</small></div></li>`).join(""):`<li>Sin eventos hoy. Mira el resto de la semana.</li>`;
+}
+renderToday();
+
+
+function renderPromo(b){
+  const p=$("#promo");if(!b||!b.on||(!b.title&&!okimg(b.img))){p.hidden=true;return}
+  p.hidden=false;p.innerHTML=(okimg(b.img)?`<img src="${okimg(b.img)}" alt="">`:"")+`<div><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p>${safe(b.link)?`<a class="btn p" href="${esc(safe(b.link))}" target="_blank" rel="noopener">${esc(b.btn||"Ver más")}</a>`:""}</div>`;
+}
+renderPromo(SD.banner);
+
+
+/* ============ COOKIES Y PUBLICIDAD ============ */
+(function(){
+  let c=localStorage.getItem("ffz_ck");
+  function ads(){if(SD.adsense&&c==="1"&&!window._ad){window._ad=1;const e=document.createElement("script");e.async=true;e.crossOrigin="anonymous";e.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+encodeURIComponent(SD.adsense);document.head.appendChild(e)}}
+  $("#ck").hidden=!!c;ads();
+  $("#ckY").onclick=()=>{c="1";localStorage.setItem("ffz_ck","1");$("#ck").hidden=true;ads()};
+  $("#ckN").onclick=()=>{c="0";localStorage.setItem("ffz_ck","0");$("#ck").hidden=true};
+})();
+
+/* ============ PANEL ============ */
+(function(){
+  const dlg=$("#adm"),body=$("#admBody"),tabs=$("#admTabs");let D=null,tab="b",tok="",pend="",fails=0,lock=0;
+  const hdr=x=>Object.assign({apikey:CFG.key,Authorization:"Bearer "+tok},x);
+  const base=()=>JSON.parse(JSON.stringify({banner:SD.banner||{on:false},agenda:SD.agenda||[],news:SD.news||[],games:SD.games||[],gb:SD.gb||"",hb:SD.hb||{}}));
+  const T=[["b","Banner"],["p","Portada"],["a","Agenda"],["n","Novedades"],["g","Juegos"]];
+  function sync(){AGENDA=D.agenda;NEWS=D.news;typeof GAMES!="undefined"&&(GAMES=D.games);typeof GB!="undefined"&&(GB=D.gb);typeof HB!="undefined"&&(HB=D.hb);
+    typeof renderDays=="function"&&renderDays();typeof renderEvents=="function"&&renderEvents();typeof renderToday=="function"&&renderToday();typeof renderNews=="function"&&renderNews();typeof renderGames=="function"&&renderGames();typeof renderPromo=="function"&&renderPromo(D.banner);typeof renderPortada=="function"&&renderPortada()}
+  async function up(f){
+    const c=await new Promise(res=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1200/i.width),cv=document.createElement("canvas");cv.width=i.width*k;cv.height=i.height*k;cv.getContext("2d").drawImage(i,0,0,cv.width,cv.height);cv.toBlob(res,"image/jpeg",.82)};i.src=r.result};r.readAsDataURL(f)});
+    const n=Date.now()+"-"+Math.random().toString(36).slice(2,8)+".jpg";
+    const r=await fetch(CFG.url+"/storage/v1/object/media/"+n,{method:"POST",headers:hdr({"Content-Type":"image/jpeg"}),body:c});
+    if(!r.ok)throw new Error("subida");return CFG.url+"/storage/v1/object/public/media/"+n}
+  async function login(e,p){
+    if(Date.now()<lock)return toast("Demasiados intentos. Espera un minuto.");
+    const r=await fetch(CFG.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:CFG.key,"Content-Type":"application/json"},body:JSON.stringify({email:e,password:p})});
+    if(!r.ok){if(++fails>=5){lock=Date.now()+60000;fails=0}return toast("Contraseña incorrecta")}
+    tok=(await r.json()).access_token;D=base();view()}
+  async function publish(){
+    const r=await fetch(CFG.url+"/rest/v1/site_content?on_conflict=key",{method:"POST",headers:hdr({"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify(Object.keys(D).map(k=>({key:k,data:D[k]})))});
+    toast(r.ok?"Cambios publicados":"No se pudo publicar ("+r.status+"). Revisa tu sesión y el archivo SQL.")}
+  function view(){
+    tabs.innerHTML=tok?T.map(t=>`<button class="chip" data-t="${t[0]}" aria-selected="${t[0]===tab}">${t[1]}</button>`).join("")+'<button class="chip" data-t="x">Salir</button>':"";
+    $("#admP").hidden=!tok;
+    if(!tok){body.innerHTML=`<p class="tip">Escribe la contraseña de administrador.</p><div class="field"><label>Contraseña</label><input id="lP" type="password" autocomplete="current-password" placeholder="Contraseña"></div><button class="btn p" id="li" type="button">Entrar</button>`;return}
+    const B=D.banner;
+    if(tab==="b")body.innerHTML=`<label class="ck"><input type="checkbox" id="bOn" ${B.on?"checked":""}> Mostrar banner</label>
+      <div class="field"><label>Título</label><input id="bT" value="${esc(B.title)}"></div><div class="field"><label>Texto</label><textarea id="bX" rows="3">${esc(B.text)}</textarea></div>
+      <div class="two"><div class="field"><label>Texto del botón</label><input id="bB" value="${esc(B.btn)}"></div><div class="field"><label>Enlace (https://…)</label><input id="bL" value="${esc(B.link)}"></div></div>
+      <div class="field"><label>Imagen</label><input type="file" id="bI" accept="image/*"></div><button class="btn g" id="bD" type="button">Quitar imagen</button>`;
+    else if(tab==="p")body.innerHTML='<p class="tip">Imagen de fondo de cada banner de la portada.</p>'+[["agenda","Agenda"],["guias","Guías"],["juegos","Más juegos"],["novedades","Novedades"]].map(k=>`<div class="field"><label>${k[1]}</label><input type="file" data-h="${k[0]}" accept="image/*"></div>`).join("");
+    else if(tab==="a")body.innerHTML=`<p class="tip">Publica solo información confirmada.</p>
+      <div class="two"><div class="field"><label>Día</label><select id="aD">${DAYS_FULL.map((d,i)=>`<option value="${i}">${d}</option>`).join("")}</select></div><div class="field"><label>Hora</label><input type="time" id="aH"></div></div>
+      <div class="two"><div class="field"><label>Tipo</label><select id="aC">${Object.keys(CATS).map(k=>`<option value="${k}">${CATS[k].n}</option>`).join("")}</select></div><div class="field"><label>Nombre</label><input id="aN" maxlength="80"></div></div>
+      <div class="field"><label>Descripción</label><input id="aP" maxlength="160"></div><button class="btn p" id="aAdd" type="button">Agregar evento</button>
+      <ul class="al">${D.agenda.map((e,i)=>`<li><span>${DAYS[e.d]} ${esc(e.t)} · ${esc(e.n)}</span><button class="btn g" data-ad="${i}" type="button">Borrar</button></li>`).join("")||"<li>Aún no hay eventos.</li>"}</ul>`;
+    else if(tab==="n")body.innerHTML=`<div class="field"><label>Título</label><input id="nH" maxlength="120"></div>
+      <div class="two"><div class="field"><label>Categoría</label><input id="nG" maxlength="30"></div><div class="field"><label>Fecha o resumen corto</label><input id="nD" maxlength="80"></div></div>
+      <div class="field"><label>Imagen (opcional)</label><input type="file" id="nI" accept="image/*"></div><button class="btn p" id="nAdd" type="button">Agregar novedad</button>
+      <ul class="al">${D.news.map((n,i)=>`<li><span>${esc(n.h)}</span><button class="btn g" data-nd="${i}" type="button">Borrar</button></li>`).join("")||"<li>Aún no hay novedades.</li>"}</ul>`;
+    else body.innerHTML=`<div class="field"><label>Imagen del banner «Más juegos»</label><input type="file" id="gbI" accept="image/*"></div><button class="btn g" id="gbD" type="button">Quitar imagen del banner</button>
+      <h3 style="margin:18px 0 8px">Agregar juego</h3><div class="field"><label>Nombre</label><input id="gN" maxlength="60"></div><div class="field"><label>Descripción</label><input id="gP" maxlength="140"></div>
+      <div class="two"><div class="field"><label>Enlace (https://…)</label><input id="gL"></div><div class="field"><label>Imagen</label><input type="file" id="gI" accept="image/*"></div></div><button class="btn p" id="gAdd" type="button">Agregar juego</button>
+      <ul class="al">${D.games.map((g,i)=>`<li><span>${esc(g.n)}</span><button class="btn g" data-gd="${i}" type="button">Borrar</button></li>`).join("")||"<li>Aún no hay juegos.</li>"}</ul>`;
+  }
+  body.oninput=body.onchange=e=>{const t=e.target;if(!D)return;const B=D.banner;
+    if(t.type==="file"){if(e.type!=="change"||!t.files[0])return;
+      return up(t.files[0]).then(u=>{if(t.id==="bI")B.img=u;else if(t.id==="gbI")D.gb=u;else if(t.dataset.h)D.hb[t.dataset.h]=u;else{pend=u;toast("Imagen lista");return}sync();toast("Imagen subida. Pulsa Publicar cambios.")}).catch(()=>toast("No se pudo subir la imagen"))}
+    if(t.id==="bOn")B.on=t.checked;else if(t.id==="bT")B.title=t.value;else if(t.id==="bX")B.text=t.value;else if(t.id==="bB")B.btn=t.value;else if(t.id==="bL")B.link=safe(t.value);else return;sync()};
+  body.onclick=e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.id==="li")login(CFG.email,$("#lP").value);
+    else if(!D)return;
+    else if(b.id==="bD"){D.banner.img="";sync()}
+    else if(b.id==="gbD"){D.gb="";sync()}
+    else if(b.id==="aAdd"){const n=$("#aN").value.trim();if(!n||!$("#aH").value)return toast("Completa la hora y el nombre");D.agenda.push({d:+$("#aD").value,t:$("#aH").value,c:$("#aC").value,n,p:$("#aP").value.trim()});sync();view()}
+    else if(b.dataset.ad!=null){D.agenda.splice(+b.dataset.ad,1);sync();view()}
+    else if(b.id==="nAdd"){const h=$("#nH").value.trim();if(!h)return toast("Escribe un título");D.news.unshift({h,tag:$("#nG").value.trim()||"General",d:$("#nD").value.trim(),img:pend});pend="";sync();view()}
+    else if(b.dataset.nd!=null){D.news.splice(+b.dataset.nd,1);sync();view()}
+    else if(b.id==="gAdd"){const n=$("#gN").value.trim();if(!n)return toast("Escribe el nombre del juego");D.games.unshift({n,p:$("#gP").value.trim(),link:safe($("#gL").value.trim()),img:pend});pend="";sync();view()}
+    else if(b.dataset.gd!=null){D.games.splice(+b.dataset.gd,1);sync();view()}};
+  body.onkeydown=e=>{if(e.key==="Enter"&&e.target.id==="lP"){e.preventDefault();login(CFG.email,e.target.value)}};
+  tabs.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.t==="x"){tok="";D=null;view();return}tab=b.dataset.t;pend="";view()};
+  $("#admP").onclick=publish;$("#admX").onclick=()=>dlg.close();
+  function open(){if(!dlg.open){view();dlg.showModal()}}
+  const dn=new Set();addEventListener("keydown",e=>{dn.add(e.key.toLowerCase());if((e.ctrlKey||e.metaKey)&&dn.has("z")&&dn.has("x")){e.preventDefault();dn.clear();open()}});
+  addEventListener("keyup",e=>dn.delete(e.key.toLowerCase()));addEventListener("blur",()=>dn.clear());
+  if(location.hash==="#admin")open();
+})();
+})();
